@@ -4,7 +4,9 @@
 # 2. for title contains luxury word, price < 50
 
 import pandas as pd
+import logging
 
+logger = logging.getLogger(__name__)
 # Key words for luxury ads
 LUXURY_KEYWORDS = {
     "rolex",
@@ -60,6 +62,5 @@ def analyze_ads(df: pd.DataFrame) -> pd.DataFrame:
             df.at[index, "is_suspicious"] = True
     
     suspicious_count = df["is_suspicious"].sum()
-    print(f"[Analyzer] Detected {suspicious_count} suspicious ads out of {len(df)}")
-
+    logger.info(f"Detected {suspicious_count} suspicious ads out of {len(df)}")
     return df

@@ -2,12 +2,24 @@
 # currently load ads data from csv file, analyze and mark suspicious ads, write the completed results and suspicious results to output files
 import os
 import argparse
+import logging
 
 from loader import load_ads
 from analyzer import analyze_ads
 from writer import write_results
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def setup_logging() -> None:
+    """
+    Setup logging configuration.
+    """
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
 
 
 def parse_args():
@@ -39,9 +51,11 @@ def parse_args():
 def main():
     args = parse_args()
 
-    print(f"[Main] Input file: {args.input}")
-    print(f"[Main] Output directory: {args.output}")
-    print("=" * 50)
+    setup_logging()
+    logger = logging.getLogger(__name__)
+
+    logger.info(f"Input: {args.input}")
+    logger.info(f"Output: {args.output}")
 
     try:
         # load ads data
@@ -53,14 +67,14 @@ def main():
         # write the results to output files
         write_results(df_analyzed, args.output)
 
-        print("\n========== Pipeline Completed ==========")
+        logger.info("Pipeline completed successfully")
     
     except FileNotFoundError as e:
-        print(f"\n[Error] Input file not found: {e}")
+        logger.error(f"Input file not found: {e}")
     except ValueError as e:
-        print(f"\n[Error] Data validation failed: {e}")
+        logger.error(f"Data validation failed: {e}")
     except Exception as e:
-        print(f"\n[Error] An unexpected error occurred: {e}")
+        logger.error(f"An unexpected error occurred: {e}")
         raise
 
 

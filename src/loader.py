@@ -1,6 +1,12 @@
 # 负责从数据源中加载数据
 # use padas dataframe to load data
 import pandas as pd
+import logging
+
+logger = logging.getLogger(__name__)
+
+REQUIRED_COLUMNS = {"id", "title", "price", "description"}
+
 
 def load_ads(file_path: str) -> pd.DataFrame:
     """
@@ -19,13 +25,13 @@ def load_ads(file_path: str) -> pd.DataFrame:
     try:
         df = pd.read_csv(file_path)
     except FileNotFoundError:
-        print(f"[Loader] File {file_path} not found")
+        logger.error(f"File {file_path} not found")
         raise
     
-    required_columns = {"id", "title", "price", "description"}
-    missing = required_columns - set(df.columns)
+    
+    missing = REQUIRED_COLUMNS - set(df.columns)
     if missing:
         raise ValueError(f"[Loader] Missing required columns: {missing}")
     
-    print(f"[Loader] Successfully loaded {len(df)} ads from {file_path}")
+    logger.info(f"Successfully loaded {len(df)} ads from {file_path}")
     return df
