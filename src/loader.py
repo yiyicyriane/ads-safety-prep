@@ -28,10 +28,9 @@ def load_ads(file_path: str) -> pd.DataFrame:
         logger.error(f"File {file_path} not found")
         raise
     
-    
     missing = REQUIRED_COLUMNS - set(df.columns)
     if missing:
-        raise ValueError(f"[Loader] Missing required columns: {missing}")
+        raise ValueError(f"Missing required columns: {missing}")
     
     logger.info(f"Successfully loaded {len(df)} ads from {file_path}")
     return df

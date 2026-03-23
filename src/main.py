@@ -49,10 +49,10 @@ def parse_args():
 
 
 def main():
-    args = parse_args()
-
     setup_logging()
     logger = logging.getLogger(__name__)
+
+    args = parse_args()
 
     logger.info(f"Input: {args.input}")
     logger.info(f"Output: {args.output}")

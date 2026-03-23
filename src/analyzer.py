@@ -32,7 +32,7 @@ def contains_luxury_keywords(title: str) -> bool:
         True if contains any luxury keywords, False otherwise
     """
     title_lower = title.lower()
-    return any(keyword.lower() in title_lower for keyword in LUXURY_KEYWORDS)
+    return any(keyword in title_lower for keyword in LUXURY_KEYWORDS)
 
 
 def analyze_ads(df: pd.DataFrame) -> pd.DataFrame:
@@ -52,15 +52,12 @@ def analyze_ads(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy() # make a copy of the dataframe to avoid modifying the original data
     df["is_suspicious"] = False
 
-    for index, row in df.iterrows():
-        price = float(row["price"])
-        title = str(row["title"])
+    rule1 = df["price"] < PRICE_THRESHOLD_GENERAL
+    has_luxury_keywords = df["title"].apply(contains_luxury_keywords)
+    rule2 = has_luxury_keywords & (df["price"] < PRICE_THRESHOLD_LUXURY)
+   
+    df.loc[rule1 | rule2, "is_suspicious"] = True
 
-        if price < PRICE_THRESHOLD_GENERAL:
-            df.at[index, "is_suspicious"] = True
-        elif contains_luxury_keywords(title) and price < PRICE_THRESHOLD_LUXURY:
-            df.at[index, "is_suspicious"] = True
-    
     suspicious_count = df["is_suspicious"].sum()
     logger.info(f"Detected {suspicious_count} suspicious ads out of {len(df)}")
     return df
