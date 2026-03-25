@@ -75,7 +75,7 @@ def main():
         logger.error(f"Data validation failed: {e}")
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
-        raise
+        sys.exit(1)
 
 
 if __name__ == "__main__":
