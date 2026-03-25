@@ -1,6 +1,7 @@
-# Smoke test for Gemini API connectivity.
-# Run this file to verify that the API Key is configured correctly.
+# Smoke test for LLM API connectivity.
+# Test safety agent by sending a test ad.
 from llm_client import LLMClient
+from agents.safety_agent import SafetyAgent
 
 def test_api():
     """
@@ -12,5 +13,20 @@ def test_api():
     print(response)
 
 
+def test_safety_agent():
+    """
+    Test the safety agent by sending a test ad.
+    """
+    agent = SafetyAgent()
+    result = agent.analyze(
+        title="iPhone 15 PRO",
+        price=9.99,
+        description="Brand new sealed in box"
+    )
+    print(result)
+    print(type(result))
+
+
 if __name__ == "__main__":
     test_api()
+    test_safety_agent()
