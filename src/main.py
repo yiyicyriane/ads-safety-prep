@@ -3,9 +3,11 @@
 import os
 import argparse
 import logging
+import sys
+import time
 
 from loader import load_ads
-from analyzer import analyze_ads
+from agents.safety_agent import SafetyAgent
 from writer import write_results
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -62,10 +64,23 @@ def main():
         df = load_ads(args.input)
         
         # analyze ads data
-        df_analyzed = analyze_ads(df)
+        agent = SafetyAgent()
+
+        results = []
+        for _, row in df.iterrows():
+            logger.info(f"Analyzing ad {row['title']}")
+            result = agent.analyze(row["title"], row["price"], row["description"])
+            results.append({
+                "id": row["id"],
+                "title": row["title"],
+                "price": row["price"],
+                "label": result.get("label", "unknown"),
+                "reason": result.get("reason", "")
+            })
+            time.sleep(15)
 
         # write the results to output files
-        write_results(df_analyzed, args.output)
+        write_results(results, args.output)
 
         logger.info("Pipeline completed successfully")
     
