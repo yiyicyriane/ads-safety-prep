@@ -68,15 +68,25 @@ def main():
 
         results = []
         for _, row in df.iterrows():
-            logger.info(f"Analyzing ad {row['title']}")
-            result = agent.analyze(row["title"], row["price"], row["description"])
-            results.append({
-                "id": row["id"],
-                "title": row["title"],
-                "price": row["price"],
-                "label": result.get("label", "unknown"),
-                "reason": result.get("reason", "")
-            })
+            try:
+                logger.info(f"Analyzing ad {row['title']}")
+                result = agent.analyze(row["title"], row["price"], row["description"])
+                results.append({
+                    "id": row["id"],
+                    "title": row["title"],
+                    "price": row["price"],
+                    "label": result.get("label", "unknown"),
+                    "reason": result.get("reason", "")
+                })
+            except Exception as e:
+                logger.warning(f"Failed to analyze ad '{row['title']}': {e}")
+                results.append({
+                    "id": row["id"],
+                    "title": row["title"],
+                    "price": row["price"],
+                    "label": "suspicious",
+                    "reason": "analysis_failed"
+                })
             time.sleep(15)
 
         # write the results to output files

@@ -1,7 +1,10 @@
 import os
+import logging
+
 from dotenv import load_dotenv
 from google import genai
 
+logger = logging.getLogger(__name__)
 
 class LLMClient:
     def __init__(self):
@@ -36,5 +39,5 @@ class LLMClient:
 
             return response.text
         except Exception as e:
-            print(f"[Error] API call failed: {e}")
+            logger.error(f"API call failed: {e}")
             raise

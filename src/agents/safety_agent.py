@@ -1,7 +1,9 @@
 # safety agent: Use title, price, description to use LLM to detect suspicious ads
 import json
+import logging
 from llm_client import LLMClient
 
+logger = logging.getLogger(__name__)
 
 class SafetyAgent:
     def __init__(self):
@@ -45,5 +47,5 @@ class SafetyAgent:
             cleaned_response = response.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
             return json.loads(cleaned_response)
         except Exception as e:
-            print(f"[Safety Agent] Error: {e}")
+            logger.error(f"[Safety Agent] Error: {e}")
             raise
