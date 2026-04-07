@@ -71,11 +71,15 @@ def main():
             try:
                 logger.info(f"Analyzing ad {row['title']}")
                 result = agent.analyze(row["title"], row["price"], row["description"])
+                label = result.get("label", "unknown")
+                if label not in ("suspicious", "safe"):
+                    logger.warning(f"Unexpected label: '{label}' for ad '{row['title']}', defaulting to 'suspicious'")
+                    label = "suspicious"
                 results.append({
                     "id": row["id"],
                     "title": row["title"],
                     "price": row["price"],
-                    "label": result.get("label", "unknown"),
+                    "label": label,
                     "reason": result.get("reason", "")
                 })
             except Exception as e:
