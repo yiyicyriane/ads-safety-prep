@@ -7,7 +7,10 @@ import sys
 import time
 
 from loader import load_ads
-from agents.safety_agent import SafetyAgent
+from agents.price_agent import PriceAgent
+from agents.illegal_agent import IllegalAgent
+from agents.judge_agent import JudgeAgent
+from llm_client import LLMClient
 from writer import write_results
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -64,23 +67,26 @@ def main():
         df = load_ads(args.input)
         
         # analyze ads data
-        agent = SafetyAgent()
+        client = LLMClient()
+        price_agent = PriceAgent(client)
+        illegal_agent = IllegalAgent(client)
+        judge_agent = JudgeAgent(client)
 
         results = []
         for _, row in df.iterrows():
             try:
-                logger.info(f"Analyzing ad {row['title']}")
-                result = agent.analyze(row["title"], row["price"], row["description"])
-                label = result.get("label", "unknown")
-                if label not in ("suspicious", "safe"):
-                    logger.warning(f"Unexpected label: '{label}' for ad '{row['title']}', defaulting to 'suspicious'")
-                    label = "suspicious"
+                price_result = price_agent.analyze(row["title"], row["price"])
+                illegal_result = illegal_agent.analyze(row["title"], row["description"])
+                judge_result = judge_agent.judge(price_result, illegal_result)
+
                 results.append({
                     "id": row["id"],
                     "title": row["title"],
                     "price": row["price"],
-                    "label": label,
-                    "reason": result.get("reason", "")
+                    "label": judge_result["label"],
+                    "price_suspicious": price_result["price_suspicious"],
+                    "illegal_flag": illegal_result["illegal_flag"],
+                    "reason": judge_result["reason"],
                 })
             except Exception as e:
                 logger.warning(f"Failed to analyze ad '{row['title']}': {e}")
@@ -89,9 +95,11 @@ def main():
                     "title": row["title"],
                     "price": row["price"],
                     "label": "suspicious",
-                    "reason": "analysis_failed"
+                    "price_suspicious": True,
+                    "illegal_flag": True,
+                    "reason": "analysis_failed",
                 })
-            time.sleep(15)
+            time.sleep(60)
 
         # write the results to output files
         write_results(results, args.output)

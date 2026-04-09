@@ -1,4 +1,5 @@
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +25,53 @@ class JudgeAgent:
         Returns:
         - JSON object containing the analysis results(dict)
         {
-            "label: "suspicious" | "safe",
+            "label": "suspicious" | "safe",
             "reason": str
         }
         """
-        pass
+        prompt = self._build_prompt(price_result, illegal_result)
+        response_on_judge = self.llm_client.generate(prompt)
+        return self._parse_response(response_on_judge)
+    
+
+    def _build_prompt(self, price_result: dict, illegal_result: dict) -> str:
+        return (
+            "You are a judge agent for an ad safety system.\n\n"
+            "Task:\n"
+            "Determine whether the ad is suspicious based on the price and illegal flag.\n\n"
+            "Ad details:\n"
+            f"- Price suspicious: {price_result['price_suspicious']} with reason {price_result['reason']}\n"
+            f"- Illegal flag: {illegal_result['illegal_flag']} with reason {illegal_result['reason']}\n\n"
+            "Analysis rules:\n"
+            "- If either the price is suspicious or the illegal flag is true, the ad is suspicious.\n"
+            "- Otherwise, the ad is safe.\n\n"
+            "Output format (STRICT):\n"
+            "{\n"
+            "  \"label\": \"suspicious\" | \"safe\",\n"
+            "  \"reason\": \"one sentence\"\n"
+            "}\n\n"
+            "Rules:\n"
+            "- Output MUST ONLY be valid JSON\n"
+            "- DO NOT include markdown or extra text\n"
+        )
+    
+
+    def _parse_response(self, response: str) -> dict:
+        try:
+            cleaned_response_on_judge = response.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+            result_on_judge = json.loads(cleaned_response_on_judge)
+
+            if "label" not in result_on_judge or "reason" not in result_on_judge:
+                raise ValueError("Missing required fields in response")
+            
+            if result_on_judge["label"] not in ("suspicious", "safe"):
+                raise ValueError("label must be either 'suspicious' or 'safe'")
+            
+            return result_on_judge
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.warning(f"[JudgeAgent] Failed to parse response: {e}")
+            logger.warning(f"[JudgeAgent] Response on judge: {response}")
+            return {
+                "label": "suspicious",
+                "reason": "parse_failed"
+            }
