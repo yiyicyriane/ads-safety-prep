@@ -114,13 +114,13 @@ def compute_recall(matrix: dict) -> float:
 
     denominator = TP + FN
     if denominator == 0:
-        logger.warning("Recall is undefined: no ads were predicted as suspicious. Returning 0.0")
+        logger.warning("Recall is undefined: no actual suspicious ads. Returning 0.0")
         return 0.0
     
     return TP / denominator
 
 
-def print_matrics(matrix: dict) -> None:
+def print_metrics(matrix: dict) -> None:
     """
     Print precision and recall alongside the confusion matrix.
 
