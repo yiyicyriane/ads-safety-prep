@@ -72,3 +72,65 @@ def print_confusion_matrix(matrix: dict) -> None:
     print("-" * 40)
     print(f"TP={TP}  FP={FP}  TN={TN}  FN={FN}")
     print()
+
+
+def compute_precision(matrix: dict) -> float:
+    """
+    Compute the precision of the confusion matrix.
+
+    Precision = TP / (TP + FP)
+
+    Args:
+        matrix: the return value from compute_confusion_matrix()
+    
+    Returns:
+        float: the precision of the confusion matrix
+    """
+    TP = matrix["TP"]
+    FP = matrix["FP"]
+
+    denominator = TP + FP
+    if denominator == 0:
+        logger.warning("Precision is undefined: no ads were predicted as suspicious. Returning 0.0")
+        return 0.0
+    
+    return TP / denominator
+
+
+def compute_recall(matrix: dict) -> float:
+    """
+    Compute the recall of the confusion matrix.
+
+    Recall = TP / (TP + FN)
+
+    Args:
+        matrix: the return value from compute_confusion_matrix()
+    
+    Returns:
+        float: the recall of the confusion matrix
+    """
+    TP = matrix["TP"]
+    FN = matrix["FN"]
+
+    denominator = TP + FN
+    if denominator == 0:
+        logger.warning("Recall is undefined: no ads were predicted as suspicious. Returning 0.0")
+        return 0.0
+    
+    return TP / denominator
+
+
+def print_matrics(matrix: dict) -> None:
+    """
+    Print precision and recall alongside the confusion matrix.
+
+    Args:
+        matrix: the return value from compute_confusion_matrix()
+    """
+    precision = compute_precision(matrix)
+    recall = compute_recall(matrix)
+
+    print_confusion_matrix(matrix)
+    print(f"Precision: {precision:.3f}")
+    print(f"Recall: {recall:.3f}")
+    print()

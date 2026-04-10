@@ -3,7 +3,7 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "../src"))
 
-from evaluator import compute_confusion_matrix, print_confusion_matrix
+from evaluator import compute_confusion_matrix, print_confusion_matrix, compute_precision, compute_recall
 
 
 def test_basic():
@@ -77,8 +77,61 @@ def test_length_mismatch():
         print(f"✅test_length_mismatch passed! {e}")
 
 
+def test_precision_recall_basic():
+    """
+    Test the basic functionality of the precision and recall.
+    """
+    matrix = {"TP": 2, "FP": 1, "TN": 1, "FN": 1}
+
+    precision = compute_precision(matrix)
+    recall = compute_recall(matrix)
+
+    # Expected: precision=2/3, recall=2/3
+    assert abs(precision - 2/3) < 1e-6, f"Expected precision {2/3:.6f}, but got {precision:.6f}"
+    assert abs(recall - 2/3) < 1e-6, f"Expected recall {2/3:.6f}, but got {recall:.6f}"
+
+    print("✅test_precision_recall_basic passed!")
+
+
+def test_all_suspicious_metrics():
+    """
+    Test edge case where all ads are predicted as suspicious.
+    Recall should be 1.0, precision depends on class balance.
+    """
+    matrix = {"TP": 2, "FP": 2, "TN": 0, "FN": 0}
+
+    precision = compute_precision(matrix)
+    recall = compute_recall(matrix)
+
+    # Expected: precision=0.5, recall=1.0
+    assert abs(precision - 0.5) < 1e-6, f"Expected precision 0.5, but got {precision:.6f}"
+    assert abs(recall - 1.0) < 1e-6, f"Expected recall 1.0, but got {recall:.6f}"
+
+    print("✅test_all_suspicious_metrics passed!")
+
+
+def test_zero_division():
+    """
+    Test that zero division is handled gracefully.
+    """
+    # No predicted suspicious at all -> precision denominator is 0
+    matrix_no_pred_suspicious = {"TP": 0, "FP": 0, "TN": 3, "FN": 2}
+    precision = compute_precision(matrix_no_pred_suspicious)
+    assert precision == 0.0
+
+    # No actual suspicious ads -> recall denominator is 0
+    matrix_no_actual_suspicious = {"TP": 0, "FP": 1, "TN": 2, "FN": 0}
+    recall = compute_recall(matrix_no_actual_suspicious)
+    assert recall == 0.0
+
+    print("✅test_zero_division passed!")
+
+
 if __name__ == "__main__":
     test_basic()
     test_all_suspicious()
     test_all_safe()
     test_length_mismatch()
+    test_precision_recall_basic()
+    test_all_suspicious_metrics()
+    test_zero_division()
